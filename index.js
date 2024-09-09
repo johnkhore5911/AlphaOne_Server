@@ -23,26 +23,31 @@ const checkinRoutes = require('./routes/checkin')
 const recentdataRoutes = require('./routes/LiveStats')
 const department = require('./routes/Department')
 const office = require('./routes/Office');
-// const Location = require('./routes/Office')
 
 
-//livestat
+//1. User 
+app.use(`/api/v1`, user);
+
+//2.Office 
+app.use('/api/office', office);
+
+//3. Department
+app.use('/api/department', department);
+
+//4. Livestats
 app.use("/api/v1/admin",recentdataRoutes);
 
-
-// 
-app.use(`/api/v1`, user);
+//5.Checkins
 app.use('/api/checkins', checkinRoutes);
-app.use('/api/department', department);
-app.use('/api/office', office); // check this later on 
-// app.use('/api/Location', Location);
+
+
 
 app.get('/', (req, res)=>{
     res.json('HELLO WORLD')
 })
 
 app.listen(3000, ()=>{
-    console.log("Server is running on port:   https://localhost:3000 ");
+    console.log("Server is running on port: 3000");
 })
 
 

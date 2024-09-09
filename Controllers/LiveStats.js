@@ -689,9 +689,14 @@ exports.getRecentlyCheckedInEmployees = async (req, res) => {
     const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const year = today.getFullYear();
     const formattedDate = `${day}${month}${year}`; // "DDMMYYYY" format
+    // console.log(formattedDate);
+    console.log("one done ",formattedDate);
 
     // Find the live stat document for today's date
     const liveStat = await LiveState.findOne({ Date_of_rec: formattedDate }).exec();
+    console.log("two done ",liveStat);
+
+    
 
     if (!liveStat) {
       return res.status(404).json({ message: 'No check-in records found for today' });
@@ -699,6 +704,7 @@ exports.getRecentlyCheckedInEmployees = async (req, res) => {
 
     // Get the checked-in employees
     const checkedInEmployees = liveStat.Employ_checkedin;
+    console.log("Three done",checkedInEmployees);
 
     // Filter out duplicate employees based on employeeId
     const uniqueEmployees = [];
