@@ -34,7 +34,7 @@ app.use("/api/v1/admin",recentdataRoutes);
 app.use(`/api/v1`, user);
 app.use('/api/checkins', checkinRoutes);
 app.use('/api/department', department);
-app.use('/api/office/', office);
+app.use('/api/office', office); // check this later on 
 // app.use('/api/Location', Location);
 
 app.get('/', (req, res)=>{
