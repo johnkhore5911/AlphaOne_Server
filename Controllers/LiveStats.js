@@ -681,6 +681,67 @@ exports.CheckedIn = async (req, res, next) => {
 // };
 
 
+// exports.getRecentlyCheckedInEmployees = async (req, res) => {
+//   try {
+//     // Generate today's date in the format "DDMMYYYY"
+//     const today = new Date();
+//     const day = String(today.getDate()).padStart(2, '0');
+//     const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+//     const year = today.getFullYear();
+//     const formattedDate = `${day}${month}${year}`; // "DDMMYYYY" format
+//     // console.log(formattedDate);
+//     console.log("one done ",formattedDate);
+
+//     // Find the live stat document for today's date
+//     const liveStat = await LiveState.findOne({ Date_of_rec: formattedDate }).exec();
+//     console.log("two done ",liveStat);
+
+    
+
+//     if (!liveStat) {
+//       return res.status(404).json({ message: 'No check-in records found for today' });
+//     }
+
+//     // Get the checked-in employees
+//     const checkedInEmployees = liveStat.Employ_checkedin;
+//     console.log("Three done",checkedInEmployees);
+
+//     // Filter out duplicate employees based on employeeId
+//     const uniqueEmployees = [];
+//     const seenEmployeeIds = new Set();
+
+//     for (const e of checkedInEmployees.reverse()) { // Reverse to get recent entries first
+//       if (!seenEmployeeIds.has(e.employeeId)) {
+//         seenEmployeeIds.add(e.employeeId);
+//         uniqueEmployees.push(e);
+//       }
+//     }
+
+//     // Get the last 6 unique employees
+//     const recentEmployees = uniqueEmployees.slice(0, 6);
+//     console.log("Four done",recentEmployees)
+
+//     // Retrieve additional user details
+//     const employeeDetails = await Promise.all(recentEmployees.map(async (e) => {
+//       // here is the issue
+//       const user = await User.findOne({ EmployeeId: e.employeeId }).exec();
+//       return {
+//         officeid: user.department,
+//         office: user.office,
+//         EmpName: user.name,
+//         Time: e.checkedInAt
+//       };
+//     }));
+
+//     // Respond with the details in the specified format
+//     res.status(200).json({ transaction: employeeDetails });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
 exports.getRecentlyCheckedInEmployees = async (req, res) => {
   try {
     // Generate today's date in the format "DDMMYYYY"
@@ -689,14 +750,11 @@ exports.getRecentlyCheckedInEmployees = async (req, res) => {
     const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const year = today.getFullYear();
     const formattedDate = `${day}${month}${year}`; // "DDMMYYYY" format
-    // console.log(formattedDate);
-    console.log("one done ",formattedDate);
+    console.log("Date generated: ", formattedDate);
 
     // Find the live stat document for today's date
     const liveStat = await LiveState.findOne({ Date_of_rec: formattedDate }).exec();
-    console.log("two done ",liveStat);
-
-    
+    console.log("Live stat found: ", liveStat);
 
     if (!liveStat) {
       return res.status(404).json({ message: 'No check-in records found for today' });
@@ -704,7 +762,7 @@ exports.getRecentlyCheckedInEmployees = async (req, res) => {
 
     // Get the checked-in employees
     const checkedInEmployees = liveStat.Employ_checkedin;
-    console.log("Three done",checkedInEmployees);
+    console.log("Checked-in employees: ", checkedInEmployees);
 
     // Filter out duplicate employees based on employeeId
     const uniqueEmployees = [];
@@ -719,23 +777,38 @@ exports.getRecentlyCheckedInEmployees = async (req, res) => {
 
     // Get the last 6 unique employees
     const recentEmployees = uniqueEmployees.slice(0, 6);
+    console.log("Unique employees (last 6): ", recentEmployees);
 
     // Retrieve additional user details
     const employeeDetails = await Promise.all(recentEmployees.map(async (e) => {
-      const user = await User.findOne({ EmployeeId: e.employeeId }).exec();
-      return {
-        officeid: user.department,
-        office: user.office,
-        EmpName: user.name,
-        Time: e.checkedInAt
-      };
+      try {
+        const user = await User.findOne({ EmployeeId: e.employeeId }).exec();
+        if (!user) {
+          console.error(`User not found for EmployeeId: ${e.employeeId}`);
+          return null; // Handle missing user case
+        }
+
+        return {
+          officeid: user.departmentId, // Make sure this is correct as per schema
+          office: user.office,
+          EmpName: user.name,
+          Time: e.checkedInAt
+        };
+      } catch (err) {
+        console.error(`Error finding user with EmployeeId: ${e.employeeId}`, err);
+        return null; // Handle error case
+      }
     }));
 
+    // Filter out any null values from employeeDetails
+    const validEmployeeDetails = employeeDetails.filter(detail => detail !== null);
+
     // Respond with the details in the specified format
-    res.status(200).json({ transaction: employeeDetails });
+    res.status(200).json({ transaction: validEmployeeDetails });
 
   } catch (error) {
-    console.error(error);
+    console.error("Server error: ", error);
     res.status(500).json({ message: 'Server error' });
   }
 };
+
