@@ -757,7 +757,7 @@ exports.getRecentlyCheckedInEmployees = async (req, res) => {
     console.log("Live stat found: ", liveStat);
 
     if (!liveStat) {
-      return res.status(404).json({ message: 'No check-in records found for today' });
+      return res.status(301).json({ message: 'No check-in records found for today' });
     }
 
     // Get the checked-in employees
