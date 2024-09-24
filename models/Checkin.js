@@ -35,8 +35,7 @@ const checkinRecordSchema = new mongoose.Schema({
         required: true,
     },
     timestamp: {
-        type: Date,
-        default: Date.now,
+        type:String,
         required: true,
     },
     latitude: {

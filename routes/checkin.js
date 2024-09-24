@@ -156,24 +156,35 @@ function formatDuration(milliseconds) {
 //         res.status(400).send('Error recording check-in');
 //     }
 // });
-router.post('/checkin', authenticateToken, async (req, res) => {
-    const { latitude, longitude, status,checkInAt } = req.body;
+
+const { DateTime } = require('luxon');
+
+// Function to convert time to 12-hour format
+function get12HourTime() {
+    const currentTimeInIST = DateTime.now().setZone('Asia/Kolkata');
+    return currentTimeInIST.toFormat('hh:mm a'); // 12-hour format with AM/PM
+}
+
+
+
+router.post('/checkin',authenticateToken,  async (req, res) => {
+    const { latitude, longitude, status,checkInAt} = req.body;
 
     try {
         let checkin = await Checkin.findOne({ userId: req.user.id });
-
+        const timeIn12HourFormat = get12HourTime();
         if (!checkin) {
             console.log("This user is checkin");
             // If no checkin exists for the user, create a new one
             const newCheckin = new Checkin({
                 userId: req.user.id,
-                checkins: [{ status, latitude, longitude, timestamp: new Date() }],
+                checkins: [{ status, latitude, longitude, timestamp: timeIn12HourFormat }],
                 totalWorkingHours: "00:00:00" // Initialize to 0
             });
             await newCheckin.save();
             res.status(201).send('Check-in recorded');
         } else {
-            checkin.checkins.push({ status, latitude, longitude, timestamp: new Date() });
+            checkin.checkins.push({ status, latitude, longitude, timestamp:timeIn12HourFormat });
 
             if (checkin.checkins.length > 1) {
                 let totalMilliseconds = 0;
