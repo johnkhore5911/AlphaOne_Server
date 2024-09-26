@@ -465,6 +465,19 @@ function formatTime(date) {
 
 const DEBOUNCE_TIME_MS = 30000; // 30 seconds debounce time
 
+
+
+const { DateTime } = require('luxon');
+
+// Function to convert time to 12-hour format
+function get12HourTime() {
+    const currentTimeInIST = DateTime.now().setZone('Asia/Kolkata');
+    return currentTimeInIST.toFormat('hh:mm a'); // 12-hour format with AM/PM
+}
+
+
+
+
 exports.CheckedIn = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -489,7 +502,7 @@ exports.CheckedIn = async (req, res, next) => {
     const formattedDate = `${day}${month}${year}`;
 
     // Format time as 'H:MM' in IST
-    const formattedTime = `${hour}:${min}`;
+    const formattedTime = get12HourTime();
 
     console.log(`Current Time: ${formattedTime}`);
     console.log(`Formatted Date: ${formattedDate}`);
